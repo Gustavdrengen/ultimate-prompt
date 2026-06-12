@@ -4,6 +4,8 @@ This repository contains two system prompts that together govern an autonomous c
 
 The prompts are designed around a vision-driven workflow rather than a traditional ticket-driven workflow. The user is not expected to give the agent a stream of narrow instructions like "change this thing." Direct instructions still work, but the intended usage is to update the vision, add product priorities, or simply ask the agent to get to work. The agent should then inspect the project, identify the highest-leverage next step, implement improvements, solve problems, strengthen tests, and move the product forward in accordance with the vision.
 
+Both prompts also enforce a strict operating mode: the agent never presents plans to the user and never asks for approval before acting. It works independently. The only time questions to the user are allowed or encouraged is during vision creation or vision modification. If the agent detects a major hole in the vision, it surfaces the gap clearly (in `AGENTS.md`, a comment, or a checkpoint) and keeps working under a stated assumption — it does not stop to ask, and it does not silently invent vision decisions.
+
 ## The two prompts
 
 ### `setup-prompt.md`
@@ -34,7 +36,7 @@ The refresh prompt is not only for repositories that were never set up with `set
 - Conventions have drifted between modules, or new code no longer matches the standards the project started with.
 - `VISION.md` and `AGENTS.md` exist but no longer reflect what the project actually is.
 - Specs have become stale, missing for new features, or detached from the code they describe.
-- The agent is making vision-shaped decisions (purpose, scope, exclusions) without checking in.
+- The agent is making vision-shaped decisions (purpose, scope, exclusions) without surfacing them as vision holes for the user to close.
 - Tests have stopped pinning current behavior, and refactors are getting risky.
 
 Running `refresh-prompt.md` re-establishes the operating model: it re-discovers the vision, audits `AGENTS.md` and specs against the actual state of the code, and brings structure, standards, and workflow back in line with the standard. The end state should be indistinguishable in operating quality from a fresh `setup-prompt.md` run.
@@ -49,7 +51,8 @@ Both prompts encode the same operating model:
 - The agent owns implementation, structure, standards, tooling, workflows, maintenance, and repository hygiene.
 - A spec-driven workflow governs non-trivial work, with tests derived from specs.
 - The codebase structure is continuously renewable — large refactors are expected, not just permitted, when a better structure is identified.
-- Commits happen automatically at coherent checkpoints; the user is consulted only on vision-shaped decisions.
+- The agent never presents a plan to the user and always works independently. The only time questions are allowed or encouraged is during vision creation or vision modification. If the agent spots a major hole in the vision, it surfaces it clearly (in `AGENTS.md`, a comment, or a checkpoint) and keeps working under a stated assumption rather than stopping to ask.
+- Commits happen automatically at coherent checkpoints.
 
 `refresh-prompt.md` adds one additional invariant: in an existing codebase, current behavior is the contract. Refactors must preserve behavior unless the user explicitly approves a change. This is what makes the refresh prompt safe to run on code that is already in production.
 
