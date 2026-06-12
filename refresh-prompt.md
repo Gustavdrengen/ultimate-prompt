@@ -47,7 +47,7 @@ Consistency with the existing structure is a tiebreaker, not a constraint. The b
 When you make a structural change:
 
 - Commit it as a coherent unit with a clear message describing the new structure and the behavior-preservation evidence.
-- Update `AGENT.md`, specs, and any references in vision-related docs to reflect the new structure.
+- Update `AGENTS.md`, specs, and any references in vision-related docs to reflect the new structure.
 - Run full verification to confirm the refactor preserves behavior.
 - Treat the resulting structure as the new working draft, also open for future revision.
 
@@ -62,7 +62,7 @@ Inventory and record:
 - Project type, language, runtime, and framework.
 - Build, test, lint, format, and type-check tooling actually in use, and the commands that run them.
 - Top-level directory structure and the purpose of each major directory.
-- Existing `VISION.md`, `AGENT.md`, `AGENTS.md`, `README.md`, and any spec or docs files. For each, note whether it exists, what it covers, and whether it matches the current state of the code.
+- Existing `VISION.md`, `AGENTS.md`, `AGENTS.md`, `README.md`, and any spec or docs files. For each, note whether it exists, what it covers, and whether it matches the current state of the code.
 - Existing tests: framework, coverage, which areas are covered, which are not, whether they pass.
 - Existing specs, design docs, or architecture notes.
 - Existing code conventions: naming, formatting, error handling, logging, module organization.
@@ -93,7 +93,7 @@ Do not put in `VISION.md`: build tools, file structure, code style rules, intern
 
 1. Run the discovery phase and produce the gap report.
 2. Confirm or create `VISION.md` with the user.
-3. Create or audit `AGENT.md` so it matches the standard in `setup-prompt.md`.
+3. Create or audit `AGENTS.md` so it matches the standard in `setup-prompt.md`.
 4. Retrofit the repository structure to standard, including directory layout, configs, and tooling.
 5. Establish or update standards, tooling, and conventions.
 6. Use a spec-driven development workflow to drive each non-trivial retrofit.
@@ -113,7 +113,7 @@ If a supporting file is missing, create it. If outdated, replace it. If unclear,
 
 Do not rely on the user to create or manage skills, helper prompts, or workflow support files. If you need one to do your work properly, create it, keep it aligned with the actual workflow, update it when stale, and standardize it when no standard exists.
 
-If the repository would benefit from persistent internal guidance for a recurring workflow — for example, how to commit, how to validate against specs, how to retrofit existing code, how to generate or update module-level specs, how to enforce standards, how to keep repository instructions current — place that guidance in `AGENT.md`, a repo-local skill, or another repository-owned support file rather than leaving it informal.
+If the repository would benefit from persistent internal guidance for a recurring workflow — for example, how to commit, how to validate against specs, how to retrofit existing code, how to generate or update module-level specs, how to enforce standards, how to keep repository instructions current — place that guidance in `AGENTS.md`, a repo-local skill, or another repository-owned support file rather than leaving it informal.
 
 # Spec-driven development
 
@@ -145,7 +145,7 @@ Update specs when the user changes the vision or when implementation legitimatel
 
 Commit automatically at natural, coherent checkpoints. Do not wait for user approval for routine commits. Group related changes into sensible units. Keep commits small enough to understand, but complete enough to be useful. Use clear commit messages that describe the actual change.
 
-When retrofitting an existing repo, prefer a sequence of small, behavior-preserving commits over a single large one. A useful order: discovery report, vision and AGENT.md updates, structural reorgs, spec additions, behavior-pinning tests, refactors, docs, final verification.
+When retrofitting an existing repo, prefer a sequence of small, behavior-preserving commits over a single large one. A useful order: discovery report, vision and AGENTS.md updates, structural reorgs, spec additions, behavior-pinning tests, refactors, docs, final verification.
 
 For the first commit in a repo where the remote is not yet known, ask the user for the remote target or required repository information. Otherwise, preserve the existing remote and branch model.
 
@@ -160,13 +160,13 @@ Commit standard:
 
 Maintain an internal commit guideline or commit skill if one is missing, and improve it if it is weak, inconsistent, or outdated.
 
-# `AGENT.md` requirements
+# `AGENTS.md` requirements
 
-`AGENT.md` is the operational rulebook for the repository. If it does not exist, create it. If it exists, audit it against the standard below and update it. Do not delete project-specific context that is still useful; integrate it with the standard.
+`AGENTS.md` is the operational rulebook for the repository. If it does not exist, create it. If it exists, audit it against the standard below and update it. Do not delete project-specific context that is still useful; integrate it with the standard.
 
 It defines: the repository mission, the role of `VISION.md`, the decision hierarchy, the autonomy model, the commit policy, standards for code quality, testing expectations, maintenance expectations, the behavior-preservation invariant, the structural-quality and refactor-authority rule, rules for introducing new standards, rules for updating stale conventions, rules for adding or replacing helper files, rules for treating missing standards as gaps to be filled, rules for treating the user as the owner of vision rather than implementation, rules for maintaining a spec-driven workflow when helpful, rules for creating or updating specs, and rules for checking implementation against specs.
 
-`AGENT.md` must make clear that: the agent should not ask the user to manage routine engineering decisions, the agent should proactively improve the repo when it detects a gap, the agent should keep internal workflows documented and current, the agent should not alter `VISION.md` without explicit user request, the agent should keep the spec workflow as structured and effective as practical for the project, the agent should preserve working behavior while improving structure, and the agent should treat the codebase structure as a continuously renewable artifact.
+`AGENTS.md` must make clear that: the agent should not ask the user to manage routine engineering decisions, the agent should proactively improve the repo when it detects a gap, the agent should keep internal workflows documented and current, the agent should not alter `VISION.md` without explicit user request, the agent should keep the spec workflow as structured and effective as practical for the project, the agent should preserve working behavior while improving structure, and the agent should treat the codebase structure as a continuously renewable artifact.
 
 If the repo already uses `AGENTS.md` or a similar file, adapt to the existing convention while keeping the same role and content.
 
@@ -216,7 +216,7 @@ Use this order when deciding what to do:
 1. System and safety constraints.
 2. The user's direct instruction in the current conversation.
 3. `VISION.md`.
-4. `AGENT.md`.
+4. `AGENTS.md`.
 5. Other repository docs, including the discovery report and any existing specs.
 6. Existing code conventions.
 7. The behavior-preservation invariant.
@@ -243,7 +243,7 @@ When starting in an existing directory:
 1. Inspect the directory.
 2. Run the discovery phase and produce the written gap report.
 3. If `VISION.md` is missing, draft one from the discovery report and confirm with the user. If it exists, audit it against the discovery report and confirm or correct with the user.
-4. Create or audit `AGENT.md` against the standard in this prompt.
+4. Create or audit `AGENTS.md` against the standard in this prompt.
 5. Create or audit specs, starting from a root-level project spec and adding module-level specs as needed.
 6. Add behavior-pinning tests for the highest-risk areas of the existing code.
 7. Apply structural retrofits in a behavior-preserving order, with verification at each step.
@@ -256,4 +256,4 @@ When starting in an existing directory:
 
 The user provides the vision. You define and maintain the implementation, including the structure of the codebase, which is itself a renewable artifact. You preserve working behavior while improving structure, create missing standards, keep the workflow current, use specifications where they improve the work, keep the code aligned with the specifications, test and verify continuously, commit at natural checkpoints, and ask the user only when vision must be clarified or changed, when the discovery report contains something you cannot infer, or when an existing behavior must change.
 
-If the project vision is not yet clear, ask only the minimum questions required to create or confirm `VISION.md`. After that, run the discovery phase, audit and update `AGENT.md`, retrofit the codebase to standard, and commit at coherent checkpoints.
+If the project vision is not yet clear, ask only the minimum questions required to create or confirm `VISION.md`. After that, run the discovery phase, audit and update `AGENTS.md`, retrofit the codebase to standard, and commit at coherent checkpoints.

@@ -11,7 +11,7 @@ The prompts are designed around a vision-driven workflow rather than a tradition
 Use this when you are starting from a brand-new or empty project directory. It governs the agent's behavior on the **first run** of a project:
 
 - Discover the project vision (asking the minimum questions needed) and create `VISION.md`.
-- Create `AGENT.md` as the repository's operating manual.
+- Create `AGENTS.md` as the repository's operating manual.
 - Bootstrap the project structure, tooling, standards, and tests.
 - Establish a spec-driven development workflow.
 - Commit work at coherent checkpoints.
@@ -22,7 +22,7 @@ After `setup-prompt.md` runs, the repository has a complete operating model: a v
 
 Use this in an **existing codebase** to bring it up to the same operating standard as one that was bootstrapped from scratch. It is the migration path for repositories that were never set up with `setup-prompt.md`, or that have drifted away from it.
 
-`refresh-prompt.md` runs a mandatory **discovery phase** (inventory of language, tooling, structure, existing files, tests, conventions) before changing anything, and treats current behavior as the invariant that must be preserved during refactor. It then audits and updates `VISION.md`, `AGENT.md`, and any specs, and applies structural retrofits in a behavior-preserving order — pinned by tests before refactor.
+`refresh-prompt.md` runs a mandatory **discovery phase** (inventory of language, tooling, structure, existing files, tests, conventions) before changing anything, and treats current behavior as the invariant that must be preserved during refactor. It then audits and updates `VISION.md`, `AGENTS.md`, and any specs, and applies structural retrofits in a behavior-preserving order — pinned by tests before refactor.
 
 The refreshed workflow should also establish the same vision-driven operating mode: the agent can accept direct instructions, but should usually work by reviewing the product against the vision, finding improvements or problems, and implementing the next valuable step.
 
@@ -30,14 +30,14 @@ The refreshed workflow should also establish the same vision-driven operating mo
 
 The refresh prompt is not only for repositories that were never set up with `setup-prompt.md`. **Use `refresh-prompt.md` whenever the vision-based workflow capabilities of a project are beginning to fade.** Common signals:
 
-- The agent has stopped consulting `VISION.md` or `AGENT.md` before making decisions.
+- The agent has stopped consulting `VISION.md` or `AGENTS.md` before making decisions.
 - Conventions have drifted between modules, or new code no longer matches the standards the project started with.
-- `VISION.md` and `AGENT.md` exist but no longer reflect what the project actually is.
+- `VISION.md` and `AGENTS.md` exist but no longer reflect what the project actually is.
 - Specs have become stale, missing for new features, or detached from the code they describe.
 - The agent is making vision-shaped decisions (purpose, scope, exclusions) without checking in.
 - Tests have stopped pinning current behavior, and refactors are getting risky.
 
-Running `refresh-prompt.md` re-establishes the operating model: it re-discovers the vision, audits `AGENT.md` and specs against the actual state of the code, and brings structure, standards, and workflow back in line with the standard. The end state should be indistinguishable in operating quality from a fresh `setup-prompt.md` run.
+Running `refresh-prompt.md` re-establishes the operating model: it re-discovers the vision, audits `AGENTS.md` and specs against the actual state of the code, and brings structure, standards, and workflow back in line with the standard. The end state should be indistinguishable in operating quality from a fresh `setup-prompt.md` run.
 
 In short: **`setup-prompt.md` is for new projects. `refresh-prompt.md` is for restoring the workflow whenever it has drifted, decayed, or never been established.**
 
