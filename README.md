@@ -2,6 +2,8 @@
 
 This repository contains two system prompts that together govern an autonomous coding agent's behavior on a software project. The agent treats a single user-owned `VISION.md` file as the project's source of truth, and owns everything else — structure, standards, tooling, specifications, tests, and documentation.
 
+The prompts are designed around a vision-driven workflow rather than a traditional ticket-driven workflow. The user is not expected to give the agent a stream of narrow instructions like "change this thing." Direct instructions still work, but the intended usage is to update the vision, add product priorities, or simply ask the agent to get to work. The agent should then inspect the project, identify the highest-leverage next step, implement improvements, solve problems, strengthen tests, and move the product forward in accordance with the vision.
+
 ## The two prompts
 
 ### `setup-prompt.md`
@@ -14,13 +16,15 @@ Use this when you are starting from a brand-new or empty project directory. It g
 - Establish a spec-driven development workflow.
 - Commit work at coherent checkpoints.
 
-After `setup-prompt.md` runs, the repository has a complete operating model: a vision document, an agent manual, baseline standards, and a development workflow.
+After `setup-prompt.md` runs, the repository has a complete operating model: a vision document, an agent manual, baseline standards, and a development workflow. That workflow should make it natural for the agent to work from the vision, proactively review the product for gaps and improvements, and test everything it changes or creates.
 
 ### `refresh-prompt.md`
 
 Use this in an **existing codebase** to bring it up to the same operating standard as one that was bootstrapped from scratch. It is the migration path for repositories that were never set up with `setup-prompt.md`, or that have drifted away from it.
 
 `refresh-prompt.md` runs a mandatory **discovery phase** (inventory of language, tooling, structure, existing files, tests, conventions) before changing anything, and treats current behavior as the invariant that must be preserved during refactor. It then audits and updates `VISION.md`, `AGENT.md`, and any specs, and applies structural retrofits in a behavior-preserving order — pinned by tests before refactor.
+
+The refreshed workflow should also establish the same vision-driven operating mode: the agent can accept direct instructions, but should usually work by reviewing the product against the vision, finding improvements or problems, and implementing the next valuable step.
 
 ## When to use the refresh prompt
 
