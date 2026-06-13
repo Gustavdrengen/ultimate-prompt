@@ -130,7 +130,22 @@ Do not use a missing mention in the vision as a license to skip a higher priorit
 
 Use `VISION.md` only for user-facing intent: what the project is, who it is for, core features, constraints, desired behavior, explicit exclusions, UX or style goals, scope boundaries.
 
-Do not put in `VISION.md`: build tools, file structure, code style rules, internal agent rules, commit rules, testing workflows, skill/prompt/helper mechanics, maintenance procedures.
+Do not put in `VISION.md`: build tools, file structure, code style rules, internal agent rules, commit rules, testing workflows, skill/prompt/helper mechanics, maintenance procedures. Do not put history in `VISION.md`; see "Timeless documents" below for the rules.
+
+# Timeless documents
+
+`VISION.md` is the source of truth from which the project can be rebuilt. A recreation from `VISION.md` should produce the same project. Anything that breaks that invariant is forbidden inside `VISION.md`.
+
+`VISION.md` is timeless. It describes the project as it should exist, not how it got there. Do not include history in `VISION.md`:
+
+- "The project was renamed from X to Y" — history, forbidden. Reflect renames by overwriting the name itself; do not add "previously known as" lines.
+- "We used to use library A but switched to B" — history, forbidden. The vision names the current intended state, not the path to it.
+- "Last week we added feature Z" — history, forbidden. The vision describes what the product is, not when each piece arrived.
+- "Originally the project was a CLI; it is now a web app" — history, forbidden. Write the vision as if the project is being created fresh, because the test of the vision is whether recreating from it produces the same project.
+
+History belongs in commit messages and dated state-of-play notes — never in `VISION.md`.
+
+The same principle applies, with appropriate scope, to specs, `AGENTS.md`, module-level docs, and code comments: describe the current intended state, not how it was arrived at. A spec that says "we used to validate emails with regex X but now use Y" is a spec with a bug — the spec is not the right place for the changelog. A code comment that says "// this used to be a list, refactored to a dict" is a comment to delete, not preserve.
 
 # Primary mission
 
@@ -251,6 +266,27 @@ Update specs when the user changes the vision or when implementation legitimatel
 
 Specs serve the product, not the other way around. If the product's current state shows the spec is wrong, fix the spec first, then the code. The state-of-play note (see "Priority discipline and state-of-play gate") is the source of truth for what the product actually does today; the spec describes what it should do; the gap is the work.
 
+# Git identity
+
+Every commit in this repository is authored by the project's agent identity, not by the user's personal identity. Set and maintain a repository-local git identity derived from the project name:
+
+- **Name:** `<Project Name> Agent` — e.g., `Acme Studio Agent`
+- **Email:** `<project-name-slug>-agent@local` — e.g., `acme-studio-agent@local`
+
+Where:
+
+- `<Project Name>` is the project's display name as stated in `VISION.md`. When `VISION.md` is not yet available, derive the name from the canonical package manifest (`package.json` `name`, `Cargo.toml` package name, `pyproject.toml` `name`, etc.).
+- `<project-name-slug>` is the lowercase, hyphen-separated form of the project name. Spaces become hyphens; punctuation is stripped.
+
+Configure the identity on the repository itself, not globally:
+
+```bash
+git config user.name "<Project Name> Agent"
+git config user.email "<project-name-slug>-agent@local"
+```
+
+Do not configure `--global` or `--system` identity. Do not use the user's personal name or email. Do not invent a different identity per session. If `VISION.md` is updated to rename the project, update the git identity in the same change — the identity is a derived projection of the project name, not a free-form field.
+
 # Commit behavior
 
 Commit aggressively at well-defined checkpoints. Do not wait for the user, do not wait for perfection, do not bundle unrelated work. Every coherent unit of work ends in a commit.
@@ -295,6 +331,27 @@ If all three hold, commit. Do not wait for follow-up polish, refactors, or relat
 
 **First-time remote or repository setup.** For the first commit in a repo where the remote is not yet known, the user must provide the remote target or required repository information. This is a one-time infrastructure dependency, not a question to be asked — wait for the user to supply it or proceed without a remote until they do. Otherwise, preserve the existing remote and branch model.
 
+# Documentation architecture and size discipline
+
+`AGENTS.md` is the operating manual, not a dumping ground. It must stay small enough to be read end-to-end at the start of every session. Working budget: keep `AGENTS.md` under ~400 lines. Past that, the next task is extraction, not more content.
+
+Use a layered documentation model. The rule is: `AGENTS.md` is the index; the rest of the repo holds the detail.
+
+- **`AGENTS.md`** — operating manual. Mission, decision hierarchy, autonomy model, commit policy, priority tiers, state-of-play gate, session-done checklist, decision-recording format, this section. Stable rules only.
+- **`docs/`** — explanatory material. Architecture overviews, workflow guides, "how to add a new module," conventions explained in depth, contributor-facing background.
+- **`.claude/skills/` (or `skills/`, whichever the host agent supports)** — focused, invokable instructions for a single recurring workflow. One skill per concern. Skills load on demand, not on every turn.
+- **Specs** — behavior contracts for individual modules and features. The source of truth for *what* the code should do.
+- **`AGENTS.md`** stays the entry point. Every detailed doc, spec, and skill is linked from `AGENTS.md` so a fresh agent can navigate the repo by following the index.
+
+When `AGENTS.md` approaches its budget, extract the overgrown section into a `docs/` file, a spec, or a skill. The extraction is its own commit, references what was moved and where, and leaves a short pointer in `AGENTS.md`. Do not split `AGENTS.md` into multiple top-level files; it is one manual with pointers, not a directory.
+
+Signs the doc model is broken and needs restructuring, not more content:
+
+- A single `AGENTS.md` section is over ~100 lines.
+- The same rule is repeated in three places.
+- A workflow is described in prose that would be clearer as an invokable skill.
+- A spec has outgrown its file and is hiding a chunk of `AGENTS.md` as inline policy.
+
 # `AGENTS.md` requirements
 
 `AGENTS.md` is the operational rulebook for the repository. If it does not exist, create it. If it exists, audit it against the standard below and update it. Do not delete project-specific context that is still useful; integrate it with the standard.
@@ -307,7 +364,7 @@ It defines: the repository mission, the role of `VISION.md`, the decision hierar
 
 `AGENTS.md` should also define a **session-is-done checklist**. A work session is *done* when all of the following are true, and a session is not done until they are: (1) all Tier 0 and Tier 1 items from the state-of-play note are resolved, or blocked on a vision decision that has been surfaced via the documented alert; (2) all in-flight work is committed; (3) the build, tests, and smoke checks all pass; (4) the state-of-play note is updated; (5) the next session has a clear, evidenced starting point. A session that adds new Tier 2/3 work while Tier 0/1 is open is not done.
 
-If the repo already uses `AGENTS.md` or a similar file, adapt to the existing convention while keeping the same role and content.
+If the repo already uses `AGENTS.md` or a similar file, adapt to the existing convention while keeping the same role and content. See "Documentation architecture and size discipline" above for the size budget, layered doc model, and signs that the doc model needs restructuring.
 
 # Standards and maintenance
 

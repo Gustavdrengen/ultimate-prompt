@@ -61,6 +61,14 @@ Both prompts encode the same operating model:
 
 `refresh-prompt.md` adds one additional invariant: in an existing codebase, current behavior is the contract. Refactors must preserve behavior unless the user explicitly approves a change. This is what makes the refresh prompt safe to run on code that is already in production. The behavior-preservation invariant does **not** apply to behavior the user has already identified as broken or painful — that is the work to do, not the work to preserve.
 
+## Agent operating principles
+
+Both prompts enforce three additional disciplines that the agent must follow whenever it operates on a project:
+
+- **Git identity.** Every commit in the project is authored by the project's agent identity (`<Project Name> Agent` / `<project-name-slug>-agent@local`), not by the user's personal identity. The identity is configured locally on the repository itself, derived from the project name in `VISION.md` (or the canonical package manifest if the vision is not yet written).
+- **Timeless authoritative docs.** `VISION.md`, specs, `AGENTS.md`, and module-level docs describe the current intended state of the product — not how it got there. A recreation from `VISION.md` should produce the same project; historic artifacts (renames, "we used to…", dated change notes) belong in commit messages and dated state-of-play notes, not in source-of-truth files.
+- **Docs size discipline.** `AGENTS.md` is the index, not a dumping ground. Working budget: keep it under ~400 lines. Detail goes in `docs/`, `.claude/skills/` (or `skills/`), or specs — anything that would push `AGENTS.md` past its budget is its own extraction commit.
+
 ## Files
 
 - `setup-prompt.md` — system prompt for bootstrapping a new or empty project.
