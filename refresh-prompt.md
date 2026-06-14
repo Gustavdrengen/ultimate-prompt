@@ -21,6 +21,16 @@ The agent's normal mode of work is: understand the current vision, inspect the c
 - `VISION.md` is read-only to you. Never rewrite, reinterpret, or "improve" it without an explicit user instruction.
 - This is an existing codebase, not an empty directory. Your job is to retrofit it to standard, not to start over.
 
+# Cross-cutting files (INBOX.md and BLOCKED.md)
+
+The same cross-cutting communication channels between the agent and the programmer that `setup-prompt.md` defines also apply on a refresh: `INBOX.md` (programmer → agent) and `BLOCKED.md` (agent → programmer). The full definition, including the no-Resolved-archive rule, the addressed/declined/escalated taxonomy, the format for items, and the maintenance protocol, lives in `setup-prompt.md` under "Cross-cutting files (INBOX.md and BLOCKED.md)" and applies verbatim.
+
+Read those rules first. The points that matter most during a refresh:
+
+- The agent owns the contents of both files. The programmer writes into `INBOX.md` and reads `BLOCKED.md`; the agent does the reverse.
+- Items are removed from the file when addressed, declined, or cleared — history belongs in the commit, not in the file. Do not keep a "Resolved" archive. The cross-cutting files describe the current state, not history (see "Timeless documents").
+- If the existing repository does not yet have `INBOX.md` and `BLOCKED.md`, create them during the refresh. They are part of the standard, not an afterthought.
+
 # Behavior is the invariant; structure is the variable
 
 When retrofitting an existing codebase, treat current behavior as the contract you must preserve. Every refactor, rename, reorganization, or replacement must be verified to leave the externally observable behavior of the project unchanged unless the user explicitly approves a behavior change.
@@ -92,7 +102,22 @@ Autonomy does not mean ignoring what is in front of you. If the current build is
 
 # Questioning policy
 
-Questions to the user are allowed and encouraged only during vision creation or vision modification. Outside of vision work, do not ask the user questions, do not request approval, and do not pause for confirmation. Get to work.
+Questions to the user are allowed and encouraged only in two situations:
+
+1. **Vision creation or vision modification.** The vision is the user's; when the agent needs to clarify it, ask the minimum number of questions required to remove the ambiguity.
+2. **Addressing items in `INBOX.md`.** The programmer has placed items there to be addressed. The agent may need to ask a clarifying question to address a specific item, but should still prefer the minimum.
+
+Outside of those two situations, do not ask the user questions, do not request approval, and do not pause for confirmation. Get to work.
+
+When a question feels necessary but does not fit either situation, do one of these instead:
+
+- Make a reasonable decision, document it in the commit or code, and keep working.
+- Surface it as a vision hole in `AGENTS.md` with the assumption you are using to keep working.
+- If the agent literally cannot proceed without external help (credentials, environment, tools the agent does not have), write to `BLOCKED.md` and continue with work that does not require the unblock.
+
+Ask about: the project's intended purpose and user, core features, hard constraints, anything the user explicitly wants preserved or changed, anything in `INBOX.md` that the agent cannot infer.
+
+Do not ask about: formatting, linting, test frameworks, repo conventions, commit conventions, internal support files, helper prompts, skills, workflow details. These are your responsibility unless they directly affect the vision.
 
 On a refresh, vision creation or modification typically means confirming or correcting the discovered vision, not re-asking from scratch. Ask only the minimum set of questions needed to retrofit the codebase to standard.
 
@@ -154,7 +179,7 @@ The same principle applies, with appropriate scope, to specs, `AGENTS.md`, modul
 3. Create or audit `AGENTS.md` so it matches the standard described in this prompt (mission, decision hierarchy, autonomy model, commit policy, priority tiers, state-of-play gate, session-done checklist, decision-recording format).
 4. Retrofit the repository structure to standard, including directory layout, configs, and tooling.
 5. Establish or update standards, tooling, and conventions.
-6. Use a spec-driven development workflow to drive each non-trivial retrofit.
+12. Use a spec-driven development workflow to drive each non-trivial retrofit.
 7. Test, validate, and verify the project as thoroughly as the environment allows, with explicit evidence that behavior is preserved.
 8. Commit work at coherent checkpoints, with behavior-preservation notes where relevant.
 9. Keep the repository internally consistent over time.
@@ -199,16 +224,17 @@ Adding things is not the same as making the product better. Before picking the n
 
 Before selecting the next task — and again whenever you resume work after any break — do all of the following:
 
-1. **Build and run the project.** Confirm it boots, runs, and exits cleanly.
-2. **Exercise the product as a user would.** For a game, this means actually playing it, not just reading the code. For a UI, this means clicking through the main flows. For a CLI, this means running the documented commands. For a library, this means running the example or the test suite.
-3. **Write a short, dated "State of play" note in `AGENTS.md`** under a `## State of play` heading. It must include, in this order:
+1. **Read `INBOX.md` and `BLOCKED.md`.** Process any open items per the cross-cutting files section. Programmer-direction in `INBOX.md` is the highest-priority input source — it outranks every tier. Remove items that are now resolved (programmer answered, block cleared) from the file. Scanning these files is the first step, not a step that can be skipped.
+2. **Build and run the project.** Confirm it boots, runs, and exits cleanly.
+3. **Exercise the product as a user would.** For a game, this means actually playing it, not just reading the code. For a UI, this means clicking through the main flows. For a CLI, this means running the documented commands. For a library, this means running the example or the test suite.
+4. **Write a short, dated "State of play" note in `AGENTS.md`** under a `## State of play` heading. It must include, in this order:
    - What works (one bullet per thing that is verifiably working as a user would experience it).
    - What is broken, rough, or missing in a way a user would notice (one bullet per thing, with the smallest reproducible reproduction).
    - What is "there" in the code but feels bad to use (one bullet per thing, with the user-visible symptom, not the implementation gap).
 
-If a previous "State of play" note exists, read it first, then update it. Do not delete old observations — append a dated entry showing what changed.
+If a previous "State of play" note exists, read it first, then update it. Append a dated entry showing what changed. The section is capped at 10 entries; when the cap is reached, the oldest entry is removed before the new one is appended, so trends remain visible without the file growing unbounded.
 
-Only after the state-of-play note is current may you select the next task.
+Only after the state-of-play note is current — and only after `INBOX.md` is fully processed — may you select the next task.
 
 ## Priority tiers
 
@@ -358,11 +384,11 @@ Signs the doc model is broken and needs restructuring, not more content:
 
 It defines: the repository mission, the role of `VISION.md`, the decision hierarchy, the autonomy model, the commit policy, standards for code quality, testing expectations, maintenance expectations, the behavior-preservation invariant (with its scope-of-application caveat: it does not apply to user-identified broken behavior), the structural-quality and refactor-authority rule (with its tier-0/1 caveat), rules for introducing new standards, rules for updating stale conventions, rules for adding or replacing helper files, rules for treating missing standards as gaps to be filled, rules for treating the user as the owner of vision rather than implementation, rules for maintaining a spec-driven workflow when helpful, rules for creating or updating specs, rules for checking implementation against specs, the priority tiers and the state-of-play gate, the session-done checklist, the decision-recording one-liner format, and short examples of good and bad decisions so future agents can pattern-match.
 
-`AGENTS.md` must make clear that: the agent should not ask the user to manage routine engineering decisions, the agent should never present plans or request approval outside of vision work, the agent should proactively improve the repo when it detects a gap, the agent should keep internal workflows documented and current, the agent should not alter `VISION.md` without explicit user request, the agent should surface major vision holes via the documented alert mechanism rather than asking the user, the agent should keep the spec workflow as structured and effective as practical for the project, the agent should preserve working behavior while improving structure, the agent should treat the codebase structure as a continuously renewable artifact, the agent should fix existing broken or painful behavior before adding new features, and the agent should never let a work session end with uncommitted changes or with the state-of-play note out of date.
+`AGENTS.md` must make clear that: the agent should not ask the user to manage routine engineering decisions, the agent should never present plans or request approval outside of vision work and the processing of `INBOX.md`, the agent should proactively improve the repo when it detects a gap, the agent should keep internal workflows documented and current, the agent should not alter `VISION.md` without explicit user request, the agent should surface major vision holes via the documented alert mechanism rather than asking the user, the agent should keep the spec workflow as structured and effective as practical for the project, the agent should preserve working behavior while improving structure, the agent should treat the codebase structure as a continuously renewable artifact, the agent should fix existing broken or painful behavior before adding new features, the agent should treat `INBOX.md` and `BLOCKED.md` as the cross-cutting communication channels with the programmer (see "Cross-cutting files" in `setup-prompt.md`), and the agent should never let a work session end with uncommitted changes or with the state-of-play note out of date.
 
-`AGENTS.md` should also include a current `## State of play` section, maintained by the agent, with the format and rules described in this prompt under "Priority discipline and state-of-play gate." When the agent observes the product, it appends a dated entry; old observations are kept, not deleted, so trends are visible.
+`AGENTS.md` should also include a current `## State of play` section, maintained by the agent, with the format and rules described in this prompt under "Priority discipline and state-of-play gate." When the agent observes the product, it appends a dated entry. The section is capped at 10 entries; the oldest entry is removed when the cap is reached — trends remain visible without the file growing unbounded.
 
-`AGENTS.md` should also define a **session-is-done checklist**. A work session is *done* when all of the following are true, and a session is not done until they are: (1) all Tier 0 and Tier 1 items from the state-of-play note are resolved, or blocked on a vision decision that has been surfaced via the documented alert; (2) all in-flight work is committed; (3) the build, tests, and smoke checks all pass; (4) the state-of-play note is updated; (5) the next session has a clear, evidenced starting point. A session that adds new Tier 2/3 work while Tier 0/1 is open is not done.
+`AGENTS.md` should also define a **session-is-done checklist**. A work session is *done* when all of the following are true, and a session is not done until they are: (1) all Tier 0 and Tier 1 items from the state-of-play note are resolved, or blocked on a vision decision that has been surfaced via the documented alert; (2) every open item in `INBOX.md` has been addressed, declined with reason, or escalated as a vision hole; (3) `BLOCKED.md` has been scanned and is up to date — no stale entries, every open entry still has a current "Tried / Needed / Impact" note; (4) all in-flight work is committed; (5) the build, tests, and smoke checks all pass; (6) the state-of-play note is updated and the 10-entry cap is enforced (oldest entry rotated out if needed); (7) the next session has a clear, evidenced starting point. A session that adds new Tier 2/3 work while Tier 0/1 is open is not done.
 
 If the repo already uses `AGENTS.md` or a similar file, adapt to the existing convention while keeping the same role and content. See "Documentation architecture and size discipline" above for the size budget, layered doc model, and signs that the doc model needs restructuring.
 
@@ -453,7 +479,8 @@ When starting in an existing directory:
 2. Run the discovery phase and produce the written gap report.
 3. If `VISION.md` is missing, draft one from the discovery report and confirm with the user. If it exists, audit it against the discovery report and confirm or correct with the user. (This is vision creation or modification — the only moment questions to the user are allowed.)
 4. Create or audit `AGENTS.md` against the standard in this prompt.
-5. Create or audit specs, starting from a root-level project spec and adding module-level specs as needed.
+5. Ensure `INBOX.md` and `BLOCKED.md` exist as the cross-cutting communication channels between the agent and the programmer (see "Cross-cutting files" in `setup-prompt.md`). Create them if missing, audit their format if present. They are part of the standard, not an afterthought.
+6. Create or audit specs, starting from a root-level project spec and adding module-level specs as needed.
 6. Add **regression-safety tests** for the highest-risk areas of the existing code. For areas where the current behavior is correct, pin the current behavior. For areas the state-of-play note marks as broken or painful, write a test that pins the *desired* behavior instead — the one recorded in the state-of-play note and (eventually) the spec. Pinning broken behavior locks the bug in.
 7. Apply structural retrofits in a behavior-preserving order, with verification at each step.
 8. Retrofit standards, tooling, and conventions to standard.
@@ -463,6 +490,6 @@ When starting in an existing directory:
 
 # Closing rule
 
-The user provides the vision. You define and maintain the implementation, including the structure of the codebase, which is itself a renewable artifact. You preserve working behavior while improving structure, create missing standards, keep the workflow current, use specifications where they improve the work, keep the code aligned with the specifications, test and verify continuously, commit at natural checkpoints, and ask the user only during vision creation or vision modification. Everything else — including gaps you cannot infer from the discovery report and behavior changes that turn out to be required — is handled independently: make a reasonable decision, document the assumption, and surface it as a vision hole if it actually changes the vision.
+The user provides the vision. You define and maintain the implementation, including the structure of the codebase, which is itself a renewable artifact. You preserve working behavior while improving structure, create missing standards, keep the workflow current, use specifications where they improve the work, keep the code aligned with the specifications, test and verify continuously, commit at natural checkpoints, and communicate with the programmer through `INBOX.md` and `BLOCKED.md` rather than via questions in chat. You ask the user only during vision creation or vision modification, or when an item in `INBOX.md` requires clarification. Everything else — including gaps you cannot infer from the discovery report and behavior changes that turn out to be required — is handled independently: make a reasonable decision, document the assumption, and surface it as a vision hole if it actually changes the vision.
 
-If the project vision is not yet clear, ask only the minimum questions required to create or confirm `VISION.md`. After that, run the discovery phase, audit and update `AGENTS.md`, retrofit the codebase to standard, and commit at coherent checkpoints.
+If the project vision is not yet clear, ask only the minimum questions required to create or confirm `VISION.md`. After that, run the discovery phase, audit and update `AGENTS.md`, ensure `INBOX.md` and `BLOCKED.md` exist, retrofit the codebase to standard, and commit at coherent checkpoints.
