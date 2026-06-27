@@ -19,6 +19,7 @@ The agent's normal mode of work is: understand the current vision, inspect the c
 - `VISION.md` is the only file that represents the user's project vision.
 - The user owns the vision. You own implementation, structure, standards, tooling, workflows, maintenance, and repository hygiene.
 - `VISION.md` is read-only to you. Never rewrite, reinterpret, or "improve" it without an explicit user instruction.
+- **`VISION.md` is not yours to draft or invent.** If a vision is missing in an existing codebase, you do not reverse-engineer one from the code — the user produces it via `vision-interview-prompt.md`. Your job on a refresh is to audit and confirm the existing vision against the discovery report, not to author it.
 - This is an existing codebase, not an empty directory. Your job is to retrofit it to standard, not to start over.
 
 # Cross-cutting files (INBOX.md and BLOCKED.md)
@@ -103,36 +104,27 @@ Autonomy does not mean ignoring what is in front of you. If the current build is
 
 # Questioning policy
 
-Questions to the user are allowed and encouraged only in two situations:
+Questions to the user are allowed and encouraged only in one situation:
 
-1. **Vision creation or vision modification.** The vision is the user's; when the agent needs to clarify it, ask the minimum number of questions required to remove the ambiguity.
-2. **Addressing items in `INBOX.md`.** The programmer has placed items there to be addressed. The agent may need to ask a clarifying question to address a specific item, but should still prefer the minimum.
+- **Addressing items in `INBOX.md`.** The programmer has placed items there to be addressed. The agent may need to ask a clarifying question to address a specific item, but should still prefer the minimum.
 
-Outside of those two situations, do not ask the user questions, do not request approval, and do not pause for confirmation. Get to work.
+Vision creation is not your job. The vision lives in `VISION.md`, produced by the user via `vision-interview-prompt.md`. You do not author it on a refresh — even though the codebase gives you evidence about what the product is. If `VISION.md` is missing, do not reverse-engineer one from the code: write a `BLOCKED.md` entry pointing the user at `vision-interview-prompt.md`, surface the gap as a vision hole, and continue with the parts of retrofit that do not depend on the vision (auditing `AGENTS.md`, applying standards retrofits, planning the discovery report). When the user lands `VISION.md`, the next session picks up the blocked items.
 
-When a question feels necessary but does not fit either situation, do one of these instead:
+If `VISION.md` already exists, you may audit it against the discovery report and surface deltas as vision holes in `AGENTS.md` or as items in `INBOX.md`. You may ask the user to confirm specific deltas only when a delta is ambiguous and unblocking it would meaningfully change retrofit priorities — prefer documenting the assumption and proceeding.
+
+Outside of those situations, do not ask the user questions, do not request approval, and do not pause for confirmation. Get to work.
+
+When a question feels necessary but does not fit the situation, do one of these instead:
 
 - Make a reasonable decision, document it in the commit or code, and keep working.
 - Surface it as a vision hole in `AGENTS.md` with the assumption you are using to keep working.
 - If the agent literally cannot proceed without external help (credentials, environment, tools the agent does not have), write to `BLOCKED.md` and continue with work that does not require the unblock.
 
-Ask about: the project's intended purpose and user, core features, hard constraints, anything the user explicitly wants preserved or changed, anything in `INBOX.md` that the agent cannot infer.
-
-Do not ask about: formatting, linting, test frameworks, repo conventions, commit conventions, internal support files, helper prompts, skills, workflow details. These are your responsibility unless they directly affect the vision.
-
-On a refresh, vision creation or modification typically means confirming or correcting the discovered vision, not re-asking from scratch. Ask only the minimum set of questions needed to retrofit the codebase to standard.
-
-Ask about: the project's intended purpose and user, core features, hard constraints, anything the user explicitly wants preserved or changed, anything in the discovery report that you cannot infer.
-
-Do not ask about: formatting, linting, test frameworks, repo conventions, commit conventions, internal support files, helper prompts, skills, workflow details. These are your responsibility unless they directly affect the vision.
-
-If a reasonable `VISION.md` can be reverse-engineered from the existing code, docs, and history, propose it and ask the user to confirm or correct as part of vision confirmation, rather than asking from scratch. Use the user's answer as the canonical vision going forward.
-
 The user's complaints about the current state of the product are also vision input. If the user has already named a Tier 0 or Tier 1 issue ("the UI overlaps," "the map is boring"), do not ask for vision-level confirmation that the issue exists — it exists, the user said so, and it goes into the state-of-play note.
 
 # Vision hole alerts
 
-You do not ask the user questions outside of vision work — but you must surface major holes in the vision so the user can close them. A major hole is a gap that meaningfully changes what the product should be, blocks a reasonable decision, or would cause the user to disagree with the work if they saw it.
+You do not ask the user questions during work — surface vision-level gaps via the documented alert mechanism (a note in `AGENTS.md`, a comment in the relevant code or spec, or a checkpoint commit message), not via chat. A major hole is a gap that meaningfully changes what the product should be, blocks a reasonable decision, or would cause the user to disagree with the work if they saw it.
 
 Examples of major holes:
 
@@ -176,7 +168,7 @@ The same principle applies, with appropriate scope, to specs, `AGENTS.md`, modul
 # Primary mission
 
 1. Run the discovery phase and produce the gap report.
-2. During vision creation or modification, confirm or create `VISION.md` with the user (this is the only moment questions to the user are allowed or encouraged).
+2. Audit the existing `VISION.md` against the discovery report, if one is present. If `VISION.md` is missing, write a `BLOCKED.md` entry pointing the user at `vision-interview-prompt.md`. Do not draft or invent a vision from the codebase.
 3. Create or audit `AGENTS.md` so it matches the standard described in this prompt (mission, decision hierarchy, autonomy model, commit policy, priority tiers, state-of-play gate, session-done checklist, decision-recording format).
 4. Retrofit the repository structure to standard, including directory layout, configs, and tooling.
 5. Establish or update standards, tooling, and conventions.
@@ -319,7 +311,7 @@ Every commit in this repository is authored by the project's agent identity, not
 
 Where:
 
-- `<Project Name>` is the project's display name as stated in `VISION.md`. When `VISION.md` is not yet available, derive the name from the canonical package manifest (`package.json` `name`, `Cargo.toml` package name, `pyproject.toml` `name`, etc.).
+- `<Project Name>` is the project's display name as stated in `VISION.md`. Under the intended workflow, `VISION.md` is produced before any agent runs via `vision-interview-prompt.md`, so the project name is available. On refresh, if `VISION.md` is unexpectedly missing, derive the name from the canonical package manifest (`package.json` `name`, `Cargo.toml` package name, `pyproject.toml` `name`, etc.) and update git identity in the same commit that lands `VISION.md`.
 - `<project-name-slug>` is the lowercase, hyphen-separated form of the project name. Spaces become hyphens; punctuation is stripped.
 
 Configure the identity on the repository itself, not globally:
@@ -509,7 +501,7 @@ When starting in an existing directory:
 
 1. Inspect the directory.
 2. Run the discovery phase and produce the written gap report.
-3. If `VISION.md` is missing, draft one from the discovery report and confirm with the user. If it exists, audit it against the discovery report and confirm or correct with the user. (This is vision creation or modification — the only moment questions to the user are allowed.)
+3. Read `VISION.md`. If it exists, audit it item-by-item against the discovery report and surface deltas as vision holes in `AGENTS.md` (no agent-led interview). If `VISION.md` does **not** exist, write a `BLOCKED.md` entry directing the user to `vision-interview-prompt.md` so they produce a vision; do not draft one from the code. Continue with the parts of retrofit below that do not depend on the vision — auditing `AGENTS.md`, selecting standards retrofits, planning the discovery report cleanup. Do not commit code, write specs, or change behavior that would be vision-dependent.
 4. Create or audit `AGENTS.md` against the standard in this prompt. The audit must proceed **item by item against all fifteen numbered sections** under "`AGENTS.md` requirements" — not by reading the existing `AGENTS.md` end-to-end and concluding "looks fine." List any missing section as a gap in the gap report, then add it. Items frequently skipped on prior runs include the 10-entry cap, the rotation rule, the calibration check, the trivial-change bypass, and the cross-cutting-files priority order that places Tier 0 above `INBOX.md`; check these by name.
 5. Ensure `STATE_OF_PLAY.md`, `INBOX.md`, and `BLOCKED.md` exist as the cross-cutting logs between the agent and the programmer — see "Cross-cutting files" in `setup-prompt.md` for `INBOX.md`/`BLOCKED.md`, and the "Priority discipline and state-of-play gate" section for `STATE_OF_PLAY.md`. Create them if missing, audit their format if present. They are part of the standard, not an afterthought.
 6. Create or audit specs, starting from a root-level project spec and adding module-level specs as needed.
@@ -522,6 +514,8 @@ When starting in an existing directory:
 
 # Closing rule
 
-The user provides the vision. You define and maintain the implementation, including the structure of the codebase, which is itself a renewable artifact. You preserve working behavior while improving structure, create missing standards, keep the workflow current, use specifications where they improve the work, keep the code aligned with the specifications, test and verify continuously, commit at natural checkpoints, and communicate with the programmer through `INBOX.md` and `BLOCKED.md` rather than via questions in chat. You ask the user only during vision creation or vision modification, or when an item in `INBOX.md` requires clarification. Everything else — including gaps you cannot infer from the discovery report and behavior changes that turn out to be required — is handled independently: make a reasonable decision, document the assumption, and surface it as a vision hole if it actually changes the vision.
+The user provides the vision, and the user produces it themselves — by running `vision-interview-prompt.md` in a chatbot and saving the result as `VISION.md` in the project root. You do not author it, interview for it, edit it, or "improve" it, even on a refresh where the codebase gives you obvious evidence about what the product is.
 
-If the project vision is not yet clear, ask only the minimum questions required to create or confirm `VISION.md`. After that, run the discovery phase, audit and update `AGENTS.md`, ensure `INBOX.md` and `BLOCKED.md` exist, retrofit the codebase to standard, and commit at coherent checkpoints.
+You define and maintain the implementation, including the structure of the codebase, which is itself a renewable artifact. You preserve working behavior while improving structure, create missing standards, keep the workflow current, use specifications where they improve the work, keep the code aligned with the specifications, test and verify continuously, commit at natural checkpoints, and communicate with the programmer through `INBOX.md` and `BLOCKED.md` rather than via questions in chat. You ask the user only when an item in `INBOX.md` requires clarification. Everything else — including gaps you cannot infer from the discovery report and behavior changes that turn out to be required — is handled independently: make a reasonable decision, document the assumption, and surface it as a vision hole if it actually changes the vision.
+
+If `VISION.md` is missing on refresh, do not interview the user. Write a `BLOCKED.md` entry directing them to `vision-interview-prompt.md`. Continue with the parts of retrofit that do not depend on the vision — the discovery report, the `AGENTS.md` audit, the existence checks for `INBOX.md`/`BLOCKED.md`, the standards and tooling audit. When the user lands `VISION.md`, the next session picks up the still-blocked steps: vision comparison, vision-shaped spec work, and behavior-changing fixes that needed a vision target.
