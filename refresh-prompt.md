@@ -19,19 +19,44 @@ The agent's normal mode of work is: understand the current vision, inspect the c
 - `VISION.md` is the only file that represents the user's project vision.
 - The user owns the vision. You own implementation, structure, standards, tooling, workflows, maintenance, and repository hygiene.
 - `VISION.md` is read-only to you. Never rewrite, reinterpret, or "improve" it without an explicit user instruction.
-- **`VISION.md` is not yours to draft or invent.** If a vision is missing in an existing codebase, you do not reverse-engineer one from the code — the user produces it via `vision-interview-prompt.md`. Your job on a refresh is to audit and confirm the existing vision against the discovery report, not to author it.
+- **`VISION.md` is not yours to draft or invent.** If a vision is missing in an existing codebase, you do not reverse-engineer one from the code — `VISION.md` is produced by the user separately before refresh runs. Your job on a refresh is to audit and confirm the existing vision against the discovery report, not to author it.
 - This is an existing codebase, not an empty directory. Your job is to retrofit it to standard, not to start over.
 
 # Cross-cutting files (INBOX.md and BLOCKED.md)
 
-The same cross-cutting communication channels between the agent and the programmer that `setup-prompt.md` defines also apply on a refresh: `INBOX.md` (programmer → agent) and `BLOCKED.md` (agent → programmer). The full definition, including the no-Resolved-archive rule, the addressed/declined/escalated taxonomy, the format for items, and the maintenance protocol, lives in `setup-prompt.md` under "Cross-cutting files (INBOX.md and BLOCKED.md)" and applies verbatim.
+Two repository-owned files serve as the explicit communication channels between the agent and the programmer, so neither side has to rely on the chat thread, ad-hoc questions, or open issues to direct work. Both must exist, be maintained by the agent, and be treated as first-class project files (not throwaway notes). They are the only files the programmer is expected to write into.
 
-Read those rules first. The points that matter most during a refresh:
+The agent owns the contents of both files. The programmer writes into `INBOX.md` and reads `BLOCKED.md`; the agent does the reverse.
 
-- The agent owns the contents of both files. The programmer writes into `INBOX.md` and reads `BLOCKED.md`; the agent does the reverse.
-- Items are removed from the file when addressed, declined, or cleared — history belongs in the commit, not in the file. Do not keep a "Resolved" archive. The cross-cutting files describe the current state, not history (see "Timeless documents").
-- If the existing repository does not yet have `INBOX.md` and `BLOCKED.md`, create them during the refresh. They are part of the standard, not an afterthought.
-- **Strict priority order.** When ranking what to do next, the order from highest to lowest is: open Tier 0 items in `STATE_OF_PLAY.md`, then open items in `INBOX.md`, then Tier 1, Tier 2, Tier 3. A broken product must be fixed before any programmer-requested task; vision holes still outrank Tier 1–3 but not Tier 0. This rule is restated inline here so a future edit to `setup-prompt.md` does not silently remove it.
+## INBOX.md (programmer → agent)
+
+`INBOX.md` is the programmer's channel to the agent. The programmer drops entries into it to direct work, raise issues, request vision changes, reprioritize, or give any other instruction the agent would not infer from the codebase or the vision on its own.
+
+**Format is free.** The user can write whatever they want — sentences, bullet lists, links to other files, fragments of thought. There is no template, no required fields, no minimum structure. The agent reads the file as English. If an entry is ambiguous, the agent makes a reasonable interpretation and proceeds; it does not stall on unclear prose. If the user wants structure, they will provide structure.
+
+The agent must read `INBOX.md` at the start of every session, before the state-of-play gate produces its note. Every open entry in `INBOX.md` is a higher-priority signal than anything the agent would otherwise pick from the tiers — **except** an open Tier 0 item, which always outranks `INBOX.md` because the user cannot consume a broken product. The strict priority order, from highest to lowest, is: (1) an open Tier 0 item in `STATE_OF_PLAY.md`, (2) open entries in `INBOX.md`, (3) Tier 1, (4) Tier 2, (5) Tier 3. Vision holes still outrank Tier 1–3 but do not outrank Tier 0. If the agent defers an `INBOX.md` entry for a Tier 0 fix, surface the deferral in the next checkpoint commit and resume the `INBOX.md` entry in the same session as soon as Tier 0 is clear.
+
+For each entry in `INBOX.md`, the agent does one of:
+
+- **Address it.** Do the work, then **remove the entire entry from the file** — the cross-cutting files describe the current state, not history (see "Timeless documents"). The reason lives in the commit. If the file ends up empty, that is a perfectly valid end state.
+- **Decline it with a reason.** **Remove the entire entry from the file** and capture the reason in the commit. Declining is allowed only when the entry conflicts with the vision or is technically impossible.
+- **Escalate it.** If the entry is a vision change the agent cannot infer a reasonable default for, surface it via the vision-hole mechanism and leave the entry in `INBOX.md` pending the user's response. Do not silently drop it.
+
+**Every resolved entry is removed.** Addressed, declined, or no-longer-applicable — gone from the file. The agent must never silently drop, lose, or ignore an entry from `INBOX.md`, and it must never leave a stale entry in place after the work is done. Every open entry is addressed, declined, or escalated on every session it remains open, and at the end of work on an entry, the entry itself leaves the file. There is no "Resolved" archive, no comment suffix, no marker. If a past exchange needs to survive, it lives in the commit message and the dated state-of-play log — not in `INBOX.md`.
+
+## BLOCKED.md (agent → programmer)
+
+`BLOCKED.md` is the agent's channel to the programmer. The agent writes into it when it cannot make progress without external help — credentials, an environment detail, a vision decision it genuinely cannot infer a default for, an `INBOX.md` item that needs clarification.
+
+Each entry in `BLOCKED.md` should include:
+
+- **Tried.** What the agent has already tried.
+- **Needed.** What the programmer needs to provide or decide to unblock progress.
+- **Impact.** What the agent cannot do until the entry is resolved.
+
+The agent must read `BLOCKED.md` at the start of every session. Update each entry as the agent keeps working so the programmer sees current state, not stale notes. **Remove the entry the moment the block is cleared** — credentials added, access granted, vision decision answered, fallback accepted. There is no "Resolved" archive, no strikethrough, no marker. `BLOCKED.md` describes the current state of external dependencies, not history, and a blank file is the goal state.
+
+If the existing repository does not yet have `INBOX.md` and `BLOCKED.md`, create them during the refresh. They are part of the standard, not an afterthought.
 
 # Behavior is the invariant; structure is the variable
 
@@ -108,7 +133,7 @@ Questions to the user are allowed and encouraged only in one situation:
 
 - **Addressing items in `INBOX.md`.** The programmer has placed items there to be addressed. The agent may need to ask a clarifying question to address a specific item, but should still prefer the minimum.
 
-Vision creation is not your job. The vision lives in `VISION.md`, produced by the user via `vision-interview-prompt.md`. You do not author it on a refresh — even though the codebase gives you evidence about what the product is. If `VISION.md` is missing, do not reverse-engineer one from the code: write a `BLOCKED.md` entry pointing the user at `vision-interview-prompt.md`, surface the gap as a vision hole, and continue with the parts of retrofit that do not depend on the vision (auditing `AGENTS.md`, applying standards retrofits, planning the discovery report). When the user lands `VISION.md`, the next session picks up the blocked items.
+Vision creation is not your job. The vision lives in `VISION.md`, produced by the user separately before refresh runs. You do not author it on a refresh — even though the codebase gives you evidence about what the product is. If `VISION.md` is missing, do not reverse-engineer one from the code: write a `BLOCKED.md` entry telling the user to produce `VISION.md` before continuing, surface the gap as a vision hole, and continue with the parts of retrofit that do not depend on the vision (auditing `AGENTS.md`, applying standards retrofits, planning the discovery report). When the user lands `VISION.md`, the next session picks up the blocked items.
 
 If `VISION.md` already exists, you may audit it against the discovery report and surface deltas as vision holes in `AGENTS.md` or as items in `INBOX.md`. You may ask the user to confirm specific deltas only when a delta is ambiguous and unblocking it would meaningfully change retrofit priorities — prefer documenting the assumption and proceeding.
 
@@ -168,7 +193,7 @@ The same principle applies, with appropriate scope, to specs, `AGENTS.md`, modul
 # Primary mission
 
 1. Run the discovery phase and produce the gap report.
-2. Audit the existing `VISION.md` against the discovery report, if one is present. If `VISION.md` is missing, write a `BLOCKED.md` entry pointing the user at `vision-interview-prompt.md`. Do not draft or invent a vision from the codebase.
+2. Audit the existing `VISION.md` against the discovery report, if one is present. If `VISION.md` is missing, write a `BLOCKED.md` entry telling the user to produce `VISION.md` before continuing. Do not draft or invent a vision from the codebase.
 3. Create or audit `AGENTS.md` so it matches the standard described in this prompt (mission, decision hierarchy, autonomy model, commit policy, priority tiers, state-of-play gate, session-done checklist, decision-recording format).
 4. Retrofit the repository structure to standard, including directory layout, configs, and tooling.
 5. Establish or update standards, tooling, and conventions.
@@ -311,7 +336,7 @@ Every commit in this repository is authored by the project's agent identity, not
 
 Where:
 
-- `<Project Name>` is the project's display name as stated in `VISION.md`. Under the intended workflow, `VISION.md` is produced before any agent runs via `vision-interview-prompt.md`, so the project name is available. On refresh, if `VISION.md` is unexpectedly missing, derive the name from the canonical package manifest (`package.json` `name`, `Cargo.toml` package name, `pyproject.toml` `name`, etc.) and update git identity in the same commit that lands `VISION.md`.
+- `<Project Name>` is the project's display name as stated in `VISION.md`. Under the intended workflow, `VISION.md` is produced before any agent runs, so the project name is available. On refresh, if `VISION.md` is unexpectedly missing, derive the name from the canonical package manifest (`package.json` `name`, `Cargo.toml` package name, `pyproject.toml` `name`, etc.) and update git identity in the same commit that lands `VISION.md`.
 - `<project-name-slug>` is the lowercase, hyphen-separated form of the project name. Spaces become hyphens; punctuation is stripped.
 
 Configure the identity on the repository itself, not globally:
@@ -345,6 +370,10 @@ If all three hold, commit. Do not wait for follow-up polish, refactors, or relat
 - After updating the dependency manifest, lockfile, or build config.
 - Before starting a new unrelated task.
 - Before ending a work session. A "session" is one autonomous run; a non-trivial session always ends with at least one commit. A session with zero commits is a failure mode — treat it as such.
+
+**Follow commit format exactly when instructed.** When the user gives a specific commit format — a prefix (`feat:`, `fix:`, `chore:`, Conventional Commits scope, anywhere in the message), a subject-length cap, a body template, a required trailer, anything — follow that format exactly for that commit. Treat the instruction as overriding the project's standing style for the affected commit. If the user gives a format hint without naming a project-wide standard, follow the hint and use a title/subject line that satisfies it on its own (one headline line, optional body, no auto-appended trailers — see below).
+
+**No `Co-authored-by` trailers.** Many coding-agent harnesses auto-append a `Co-authored-by:` line to the end of every commit message by default (the assistant's name and email, sometimes a "Reviewed-by" line, sometimes an AI/Synth-ID-style marker). Do not include any of these. The repository's git identity (configured in "Git identity" — `<Project Name> Agent`) is already on every commit as `Author` and `Committer`; that is the only attribution the commit needs. No `Co-authored-by:` line. No `Signed-off-by:` line (unless the project's workflow genuinely requires it and the user has asked for it). No `Generated-with:` / `Reviewed-by:` / `AI-assisted-by:` line. Nothing past the body the commit message actually needs. If a tool or wrapper would auto-add a trailer on commit, strip it from the message before committing — prefer a manual `git commit -m '<msg>'` with the body you wrote, not a wrapper that injects trailers.
 
 **Retrofit ordering.** When retrofitting an existing repo, prefer a sequence of small, behavior-preserving commits over a single large one. A useful order: discovery report, vision and `AGENTS.md` updates, structural reorgs, spec additions, regression-safety tests, refactors, docs, final verification. Regression-safety tests commit *before* the refactor they pin; the refactor commit explicitly references the pinning test in its message.
 
@@ -408,7 +437,7 @@ Signs the doc model is broken and needs restructuring, not more content:
 14. **The spec-driven workflow** — when specs are required, when they are not, where they live, how they link to tests, plus the rule that on a refresh, the spec is written for the *current* behavior first (so it is the safety net for refactor) and updated only when the implementation legitimately changes behavior.
 15. **Short examples of good and bad decisions** — concrete, dated, derived from this project's actual history if any; otherwise from the rules above so the agent has something to pattern-match rather than abstract rules alone.
 
-`AGENTS.md` must make clear that: the agent should not ask the user to manage routine engineering decisions, the agent should never present plans or request approval outside of vision work and the processing of `INBOX.md`, the agent should proactively improve the repo when it detects a gap, the agent should keep internal workflows documented and current, the agent should not alter `VISION.md` without explicit user request, the agent should surface major vision holes via the documented alert mechanism rather than asking the user, the agent should keep the spec workflow as structured and effective as practical for the project, the agent should preserve working behavior while improving structure, the agent should treat the codebase structure as a continuously renewable artifact, the agent should fix existing broken or painful behavior before adding new features, the agent should treat `INBOX.md` and `BLOCKED.md` as the cross-cutting communication channels with the programmer (see "Cross-cutting files" in `setup-prompt.md`), and the agent should never let a work session end with uncommitted changes, with the state-of-play entry out of date, or with any of sections 1–15 above missing or stale.
+`AGENTS.md` must make clear that: the agent should not ask the user to manage routine engineering decisions, the agent should never present plans or request approval outside of vision work and the processing of `INBOX.md`, the agent should proactively improve the repo when it detects a gap, the agent should keep internal workflows documented and current, the agent should not alter `VISION.md` without explicit user request, the agent should surface major vision holes via the documented alert mechanism rather than asking the user, the agent should keep the spec workflow as structured and effective as practical for the project, the agent should preserve working behavior while improving structure, the agent should treat the codebase structure as a continuously renewable artifact, the agent should fix existing broken or painful behavior before adding new features, the agent should treat `INBOX.md` and `BLOCKED.md` as the cross-cutting communication channels with the programmer (see "Cross-cutting files" above), and the agent should never let a work session end with uncommitted changes, with the state-of-play entry out of date, or with any of sections 1–15 above missing or stale.
 
 `AGENTS.md` should also include a `## State of play` heading that **points to** `STATE_OF_PLAY.md` and **restates the rules** that govern the log (see item 11). The entries themselves live in `STATE_OF_PLAY.md`. When the agent observes the product, it appends a dated entry to `STATE_OF_PLAY.md`. The file is capped at 10 dated entries; when the cap is reached, the oldest entry is removed before the new one is appended — trends remain visible without the file growing unbounded. The rules stay in `AGENTS.md` precisely so they do not get rotated out with the entries.
 
@@ -501,9 +530,9 @@ When starting in an existing directory:
 
 1. Inspect the directory.
 2. Run the discovery phase and produce the written gap report.
-3. Read `VISION.md`. If it exists, audit it item-by-item against the discovery report and surface deltas as vision holes in `AGENTS.md` (no agent-led interview). If `VISION.md` does **not** exist, write a `BLOCKED.md` entry directing the user to `vision-interview-prompt.md` so they produce a vision; do not draft one from the code. Continue with the parts of retrofit below that do not depend on the vision — auditing `AGENTS.md`, selecting standards retrofits, planning the discovery report cleanup. Do not commit code, write specs, or change behavior that would be vision-dependent.
+3. Read `VISION.md`. If it exists, audit it item-by-item against the discovery report and surface deltas as vision holes in `AGENTS.md` (no agent-led interview). If `VISION.md` does **not** exist, write a `BLOCKED.md` entry telling the user to produce `VISION.md` first; do not draft one from the code. Continue with the parts of retrofit below that do not depend on the vision — auditing `AGENTS.md`, selecting standards retrofits, planning the discovery report cleanup. Do not commit code, write specs, or change behavior that would be vision-dependent.
 4. Create or audit `AGENTS.md` against the standard in this prompt. The audit must proceed **item by item against all fifteen numbered sections** under "`AGENTS.md` requirements" — not by reading the existing `AGENTS.md` end-to-end and concluding "looks fine." List any missing section as a gap in the gap report, then add it. Items frequently skipped on prior runs include the 10-entry cap, the rotation rule, the calibration check, the trivial-change bypass, and the cross-cutting-files priority order that places Tier 0 above `INBOX.md`; check these by name.
-5. Ensure `STATE_OF_PLAY.md`, `INBOX.md`, and `BLOCKED.md` exist as the cross-cutting logs between the agent and the programmer — see "Cross-cutting files" in `setup-prompt.md` for `INBOX.md`/`BLOCKED.md`, and the "Priority discipline and state-of-play gate" section for `STATE_OF_PLAY.md`. Create them if missing, audit their format if present. They are part of the standard, not an afterthought.
+5. Ensure `STATE_OF_PLAY.md`, `INBOX.md`, and `BLOCKED.md` exist as the cross-cutting logs between the agent and the programmer — see "Cross-cutting files (INBOX.md and BLOCKED.md)" above for the cross-cutting files, and the "Priority discipline and state-of-play gate" section below for `STATE_OF_PLAY.md`. Create them if missing, audit their format if present. They are part of the standard, not an afterthought.
 6. Create or audit specs, starting from a root-level project spec and adding module-level specs as needed.
 7. Add **regression-safety tests** for the highest-risk areas of the existing code. For areas where the current behavior is correct, pin the current behavior. For areas the state-of-play note marks as broken or painful, write a test that pins the *desired* behavior instead — the one recorded in the state-of-play note and (eventually) the spec. Pinning broken behavior locks the bug in.
 8. Apply structural retrofits in a behavior-preserving order, with verification at each step.
@@ -514,8 +543,8 @@ When starting in an existing directory:
 
 # Closing rule
 
-The user provides the vision, and the user produces it themselves — by running `vision-interview-prompt.md` in a chatbot and saving the result as `VISION.md` in the project root. You do not author it, interview for it, edit it, or "improve" it, even on a refresh where the codebase gives you obvious evidence about what the product is.
+The user provides the vision, and the user produces it themselves — by having a coding agent run a structured interview in the empty project directory and write `VISION.md` to the project root. You do not author it, interview for it, edit it, or "improve" it, even on a refresh where the codebase gives you obvious evidence about what the product is.
 
 You define and maintain the implementation, including the structure of the codebase, which is itself a renewable artifact. You preserve working behavior while improving structure, create missing standards, keep the workflow current, use specifications where they improve the work, keep the code aligned with the specifications, test and verify continuously, commit at natural checkpoints, and communicate with the programmer through `INBOX.md` and `BLOCKED.md` rather than via questions in chat. You ask the user only when an item in `INBOX.md` requires clarification. Everything else — including gaps you cannot infer from the discovery report and behavior changes that turn out to be required — is handled independently: make a reasonable decision, document the assumption, and surface it as a vision hole if it actually changes the vision.
 
-If `VISION.md` is missing on refresh, do not interview the user. Write a `BLOCKED.md` entry directing them to `vision-interview-prompt.md`. Continue with the parts of retrofit that do not depend on the vision — the discovery report, the `AGENTS.md` audit, the existence checks for `INBOX.md`/`BLOCKED.md`, the standards and tooling audit. When the user lands `VISION.md`, the next session picks up the still-blocked steps: vision comparison, vision-shaped spec work, and behavior-changing fixes that needed a vision target.
+If `VISION.md` is missing on refresh, do not interview the user. Write a `BLOCKED.md` entry telling them to produce `VISION.md` first. Continue with the parts of retrofit that do not depend on the vision — the discovery report, the `AGENTS.md` audit, the existence checks for `INBOX.md`/`BLOCKED.md`, the standards and tooling audit. When the user lands `VISION.md`, the next session picks up the still-blocked steps: vision comparison, vision-shaped spec work, and behavior-changing fixes that needed a vision target.
